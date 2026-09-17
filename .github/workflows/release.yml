@@ -1,0 +1,103 @@
+name: release
+
+# Publica a imagem Docker quando você empurra uma tag `v1.2.3`.
+#
+# Por que tag e não todo push na main: a imagem vai para um registry público com
+# a tag `latest`, e quem faz `docker pull` espera que `latest` seja uma versão,
+# não o último commit que alguém mandou. Publicar a cada push também encheria o
+# GHCR de camadas que ninguém vai baixar.
+#
+# A tag tem que combinar com o `version` do pyproject.toml — é o número que
+# aparece no `/openapi.json` e no rodapé da imagem. Se estiverem diferentes, o
+# passo de conferência quebra o build antes de publicar nada.
+#
+# Para lançar:  make lancar VERSAO=1.2.3
+# (confere a árvore, sobe a versão, cria a tag anotada e empurra.)
+
+on:
+  push:
+    tags: ["v*"]
+  # Deixa disparar à mão pelo site do GitHub, para quando a tag já existe.
+  workflow_dispatch:
+
+jobs:
+  imagem:
+    # SÓ em tag. Sem esta linha, um `workflow_dispatch` na main publicaria uma
+    # `latest` sem versão nenhuma por trás.
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      # Necessário para o `docker push` no ghcr.io com o GITHUB_TOKEN.
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: A tag combina com o pyproject.toml?
+        run: |
+          import os, re, sys, tomllib
+
+          tag = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          with open("pyproject.toml", "rb") as f:
+              versao = tomllib.load(f)["project"]["version"]
+
+          if tag != versao:
+              sys.exit(f"tag {tag!r} != pyproject {versao!r} — corrija antes de publicar")
+          print(f"ok: {versao}")
+        shell: python
+
+      # A suíte roda de novo aqui, e não só no ci.yml: a tag pode apontar para um
+      # commit que nunca passou pelo CI (tag antiga, branch que não abriu PR).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: A suíte passa nesta tag?
+        run: |
+          pip install -e ".[dev]"
+          pytest
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          # v1.2.3 gera as tags 1.2.3, 1.2 e latest: quem quiser fixar a minor
+          # aponta para `1.2` e recebe correção de patch sem mudar o compose.
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Construir e publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Cache no próprio registry: sem isso cada release reconstrói as
+          # camadas de dependência do zero e leva minutos a mais.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Criar o Release com o changelog
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            Imagem: `ghcr.io/${{ github.repository }}:${{ github.ref_name }}`
+
+            ```
+            docker run -p 8000:8000 ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ```
