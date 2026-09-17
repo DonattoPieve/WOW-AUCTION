@@ -143,3 +143,20 @@ def test_openapi_esta_publicado(client):
 
     assert r.status_code == 200
     assert "/api/items/{item_id}" in r.json()["paths"]
+
+
+def test_realm_devolve_o_realm_fixado(client):
+    r = client.get("/api/realm")
+    d = r.json()
+
+    assert r.status_code == 200
+    assert d["nome"] == "Area 52"
+    assert d["region"] == "us"
+    # O connected realm fica na configuração mesmo sem nada consumi-lo ainda:
+    # é o que os itens por realm vão usar. Ver docs/arquitetura.md.
+    assert d["connected_realm_id"] == 3676
+
+
+def test_region_padrao_e_a_do_realm(client):
+    # Sem passar ?region=, a resposta tem de vir da região do realm fixado.
+    assert client.get("/api/items/237361").json()["region"] == "us"

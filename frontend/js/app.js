@@ -58,11 +58,31 @@ const linkWowhead = (i, conteudo, classe = "") =>
   `<a class="wh ${classe}" href="https://www.wowhead.com/item=${i.id}"
       data-wowhead="item=${i.id}" rel="noopener">${conteudo}</a>`;
 
-/** Ícone do item, ou um quadrado com a inicial quando a API não tem um. */
+/**
+ * Ícone do item.
+ *
+ * A arte é da Blizzard: o banco guarda a URL do CDN deles, nunca a imagem
+ * (ver docs/arquitetura.md#imagens-dos-itens). Guardar o arquivo no
+ * repositório seria redistribuir arte que não é nossa.
+ *
+ * Três estados, nesta ordem:
+ *  1. temos URL e ela carrega  -> o ícone de verdade;
+ *  2. temos URL e ela falha    -> o onerror troca pelo quadrado com a inicial,
+ *     em vez do ícone de imagem quebrada do navegador;
+ *  3. não temos URL (dado do seed, ou item ainda sem nome preenchido)
+ *     -> o quadrado direto.
+ */
+const inicial = (i, tam) =>
+  `<span class="icone-item vazio" style="width:${tam}px;height:${tam}px"
+         aria-hidden="true">${escapar(exibido(i)[0])}</span>`;
+
 const icone = (i, tam = 28) =>
   i.icon
-    ? `<img class="icone-item" width="${tam}" height="${tam}" loading="lazy" alt="" src="${escapar(i.icon)}">`
-    : `<span class="icone-item vazio" style="width:${tam}px;height:${tam}px" aria-hidden="true">${escapar(exibido(i)[0])}</span>`;
+    ? `<img class="icone-item" width="${tam}" height="${tam}" loading="lazy" alt=""
+           src="${escapar(i.icon)}"
+           onerror="this.outerHTML=this.dataset.reserva"
+           data-reserva="${escapar(inicial(i, tam))}">`
+    : inicial(i, tam);
 
 function debounce(fn, ms) {
   let t;

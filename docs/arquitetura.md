@@ -80,6 +80,28 @@ armaduras, transmog), que usam `/data/wow/connected-realm/{id}/auctions` e aí
 sim têm preço por realm. É por isso que o `connected_realm_id` já está na
 configuração, embora hoje nada o consuma.
 
+## Imagens dos itens
+
+O banco guarda a **URL** do ícone, nunca o arquivo. A arte é da Blizzard, e
+baixá-la para o repositório seria redistribuir conteúdo que não é nosso. O
+caminho que todo site de WoW usa — e que a própria API oferece — é apontar para
+o CDN deles, e é o que a coluna `items.icon` faz: ela recebe o `value` do asset
+`icon` devolvido por `/data/wow/media/item/{id}`.
+
+Três estados no front, nesta ordem:
+
+1. **Temos URL e ela carrega** → o ícone de verdade.
+2. **Temos URL e ela falha** → um `onerror` troca pelo quadrado com a inicial,
+   em vez de deixar o ícone de imagem quebrada do navegador.
+3. **Não temos URL** → o quadrado direto. É o estado do dado do seed e do item
+   recém-ingerido cujo nome ainda não foi preenchido.
+
+O estado 3 não é defeito: o seed é ficção, e item fictício não tem arte. Rodar
+a ingestão com credenciais preenche os ícones sem tocar em código.
+
+O tooltip do Wowhead (ADR 0002) também mostra o ícone, mas do lado deles e só
+no hover; ele não alimenta esta coluna.
+
 ## Favoritos
 
 Ficam no `localStorage` do navegador, não no banco. O projeto não tem login, e
