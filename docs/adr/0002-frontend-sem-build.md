@@ -46,6 +46,34 @@ tempo irregulares ou zoom por eixo — nada disso é necessário aqui.
 reduzida a ~300 pelo servidor, e o SVG mantém o tooltip acessível e o texto
 selecionável.
 
+## A exceção: o tooltip do Wowhead
+
+Este ADR diz que o frontend não depende de nada externo. Há **uma** exceção, e
+ela merece estar escrita aqui em vez de ser descoberta no `index.html`:
+
+```html
+<script src="https://wow.zamimg.com/js/tooltips.js" defer></script>
+```
+
+É o script de embed oficial do Wowhead (documentado em
+<https://www.wowhead.com/tooltips>). Ele varre os links para
+`wowhead.com/item=ID` e anexa o tooltip do jogo — ícone, cor de qualidade,
+tipo e o texto de sabor do item.
+
+Entrou porque reproduzir aquele tooltip do zero significaria armazenar
+descrição, tipo e arte de cada item — conteúdo que é deles — e mantê-lo
+atualizado a cada patch. O script deixa esse conteúdo no servidor deles, onde
+ele pertence, e é o caminho que o próprio Wowhead oferece para isso.
+
+O que essa dependência **não** faz:
+
+- Não alimenta o banco. O Wowhead não publica uma API de dados; nome e ícone
+  que a ingestão grava continuam vindo da Battle.net API.
+- Não é requisito de funcionamento. `defer` e ausência de qualquer chamada
+  nossa a ele significam que, se o CDN cair, a página inteira continua: some o
+  tooltip, e só. O teste de ponta a ponta trata falha desse domínio como aviso,
+  não como defeito.
+
 ## Consequência aceita
 
 O `innerHTML` reconstrói a tela inteira em cada navegação. Para duas telas é

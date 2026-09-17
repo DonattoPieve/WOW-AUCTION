@@ -35,6 +35,8 @@ detalhe está em [`docs/arquitetura.md`](docs/arquitetura.md#o-realm-fixado).
   de noite de raide e de fim de semana.
 - **Nomes em português** vindos do `locale=pt_BR` da API, com o nome em inglês
   ao lado — que é o que aparece na Auction House e o que se digita para buscar.
+- **Tooltip do Wowhead** ao passar o mouse sobre o nome de um item, pelo script
+  de embed oficial deles.
 - **API REST** documentada em `/docs` (OpenAPI gerado pelo FastAPI).
 
 ![Catálogo](docs/telas/catalogo.png)
@@ -109,8 +111,9 @@ ADRs, cada uma com o que foi descartado e por quê:
 
 **Backend** — Python 3.11+, FastAPI, SQLite pelo `sqlite3` da biblioteca padrão,
 httpx.
-**Frontend** — módulos ES nativos, SVG e CSS grid. Sem build, sem dependência de
-runtime.
+**Frontend** — módulos ES nativos, SVG e CSS grid. Sem build. A única coisa
+carregada de fora é o script de tooltip do Wowhead, e a página funciona inteira
+sem ele (ver [ADR 0002](docs/adr/0002-frontend-sem-build.md#a-exceção-o-tooltip-do-wowhead)).
 **Qualidade** — pytest, ruff, mypy, Playwright para o ponta a ponta.
 
 A escolha que mais define o projeto é o que **não** entrou: sem ORM, sem

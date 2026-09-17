@@ -51,6 +51,13 @@ const nome = (i) =>
     ? `${escapar(i.name_ptbr)} <span class="nome-en">${escapar(i.name)}</span>`
     : escapar(i.name);
 
+// O tooltip do Wowhead só se anexa a <a>, e ele lê o item do href. O clique
+// continua indo para a nossa página: o href existe para o tooltip, para o
+// ctrl+clique e para quem quiser abrir o Wowhead de propósito.
+const linkWowhead = (i, conteudo, classe = "") =>
+  `<a class="wh ${classe}" href="https://www.wowhead.com/item=${i.id}"
+      data-wowhead="item=${i.id}" rel="noopener">${conteudo}</a>`;
+
 /** Ícone do item, ou um quadrado com a inicial quando a API não tem um. */
 const icone = (i, tam = 28) =>
   i.icon
@@ -121,7 +128,7 @@ async function buscar(termo) {
             (i) => `
           <button type="button" class="resultado" data-ir="${i.id}">
             ${icone(i, 24)}
-            <span class="q-${i.quality.toLowerCase()}">${nome(i)}</span>
+            ${linkWowhead(i, nome(i), `q-${i.quality.toLowerCase()}`)}
             <span class="valor-resultado">${fmt(i.value)} g</span>
           </button>`,
           )
@@ -129,7 +136,12 @@ async function buscar(termo) {
       : '<p class="titulo-lista">Nada encontrado</p>';
 
     for (const b of caixa.querySelectorAll(".resultado")) {
-      b.onclick = () => {
+      b.onclick = (e) => {
+        // O nome dentro do botão é um <a> para o Wowhead (é o que prende o
+        // tooltip deles). Sem este preventDefault, clicar no resultado sairia
+        // do app em vez de abrir a nossa página do item.
+        if (e.ctrlKey || e.metaKey) return; // ctrl+clique segue para o Wowhead
+        e.preventDefault();
         caixa.hidden = true;
         document.querySelector("#busca").value = "";
         location.hash = `#/item/${b.dataset.ir}`;
@@ -216,7 +228,7 @@ function linhas(itens) {
       (i) => `
     <tr data-id="${i.id}" tabindex="0">
       <td class="col-fav">${estrela(i.id)}</td>
-      <td class="celula-item">${icone(i)}<span class="q-${i.quality.toLowerCase()}">${nome(i)}</span></td>
+      <td class="celula-item">${icone(i)}${linkWowhead(i, nome(i), `q-${i.quality.toLowerCase()}`)}</td>
       <td class="muted">${escapar(i.category)}</td>
       <td class="r">${fmt(i.value)} g</td>
       <td class="r">${pct(i.change_pct)}</td>
@@ -248,8 +260,9 @@ async function renderItem(id) {
         ${icone(item, 52)}
         <div class="titulo-item">
           <h1>
-            <a class="q-${item.quality.toLowerCase()}" href="https://www.wowhead.com/item=${item.id}"
-               target="_blank" rel="noopener">${escapar(exibido(item))}</a>
+            <a class="wh q-${item.quality.toLowerCase()}" href="https://www.wowhead.com/item=${item.id}"
+               data-wowhead="item=${item.id}" target="_blank" rel="noopener"
+               title="Ver no Wowhead">${escapar(exibido(item))}<span class="externo" aria-hidden="true">↗</span></a>
           </h1>
           ${item.name_ptbr && item.name_ptbr !== item.name ? `<p class="nome-en">${escapar(item.name)}</p>` : ""}
           <p class="muted">${escapar(item.quality)} / ${escapar(item.category)}</p>
@@ -369,7 +382,14 @@ app.addEventListener("click", (e) => {
     return state.soFavoritos ? renderLista() : route();
   }
   const linha = e.target.closest("tr[data-id]");
-  if (linha) location.hash = `#/item/${linha.dataset.id}`;
+  if (linha) {
+    // Clique simples no nome fica no app; ctrl/cmd+clique e o botão do meio
+    // seguem para o Wowhead, que é o comportamento esperado de um link.
+    const wh = e.target.closest("a.wh");
+    if (wh && (e.ctrlKey || e.metaKey || e.button === 1)) return;
+    e.preventDefault();
+    location.hash = `#/item/${linha.dataset.id}`;
+  }
 });
 
 app.addEventListener("keydown", (e) => {

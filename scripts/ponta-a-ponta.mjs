@@ -69,13 +69,22 @@ try {
   });
 
   pagina.on("pageerror", (e) => problemas.push(`erro de JS: ${e.message}`));
-  pagina.on(
-    "console",
-    (m) => m.type() === "error" && problemas.push(`console: ${m.text()}`),
-  );
-  pagina.on("requestfailed", (r) =>
-    problemas.push(`requisição falhou: ${r.url()}`),
-  );
+  const TERCEIROS = /zamimg\.com|wowhead\.com/;
+  pagina.on("console", (m) => {
+    if (m.type() !== "error") return;
+    // Um erro de console cuja origem é o CDN de terceiro não conta: a página
+    // inteira funciona sem o tooltip do Wowhead.
+    if (TERCEIROS.test(m.location()?.url ?? "")) return;
+    problemas.push(`console: ${m.text()}`);
+  });
+  // O tooltip do Wowhead vem de um CDN de terceiro. Se ele estiver fora do ar,
+  // ou se o runner do CI não tiver saída para a internet, isso não é defeito
+  // deste projeto: a página funciona inteira sem ele. Só o que é nosso conta.
+  pagina.on("requestfailed", (r) => {
+    if (TERCEIROS.test(r.url()))
+      console.log(`aviso  terceiro indisponível: ${r.url()}`);
+    else problemas.push(`requisição falhou: ${r.url()}`);
+  });
 
   // ---- catálogo ----
   await pagina.goto(BASE, { waitUntil: "networkidle" });
@@ -129,6 +138,16 @@ try {
   conferir(
     (await pagina.locator(".card").count()) >= 5,
     "os painéis do item apareceram",
+  );
+
+  const linkWh = pagina.locator("h1 a.wh");
+  conferir(
+    /wowhead\.com\/item=\d+/.test(await linkWh.getAttribute("href")),
+    "o nome do item aponta para o Wowhead",
+  );
+  conferir(
+    /^item=\d+$/.test(await linkWh.getAttribute("data-wowhead")),
+    "o link tem o data-wowhead que o script deles lê",
   );
 
   const pontos = (

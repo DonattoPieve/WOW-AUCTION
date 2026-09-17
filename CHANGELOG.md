@@ -16,6 +16,8 @@ Segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
   quantity), com eixo duplo — ver `docs/adr/0005-eixo-duplo-e-series-alternaveis.md`.
 - Favoritos por item, guardados no navegador, com filtro na lista.
 - App fixado no realm Area 52 (US).
+- Tooltip do Wowhead pelo script de embed oficial: os nomes de item viram links
+  para `wowhead.com/item=ID` e o hover mostra ícone, qualidade e descrição.
 
 ### Corrigido
 
@@ -28,6 +30,8 @@ Segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
   faixa era estreita.
 - Ordenação por nome usava o nome em inglês, invisível na tela, e a lista
   parecia desordenada.
+- Clicar num resultado da busca saía do app para o Wowhead depois que o nome
+  virou link; o clique simples volta a abrir a página interna do item.
 
 ### Alterado
 

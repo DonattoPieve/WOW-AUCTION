@@ -277,3 +277,21 @@ svg text {
 .titulo-item h1 {
   margin: 0;
 }
+
+/* Link do Wowhead. O sublinhado só no hover mantém a tabela limpa; o tooltip
+   em si é desenhado pelo script deles (ver o comentário no index.html). */
+.wh {
+  text-decoration: none;
+}
+
+.wh:hover {
+  text-decoration: underline;
+}
+
+.externo {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.7em;
+  vertical-align: super;
+  color: var(--c-muted);
+}
