@@ -1,0 +1,95 @@
+[project]
+name = "wow-ah-prices"
+version = "1.0.0"
+description = "Preços e histórico das commodities da Auction House do World of Warcraft."
+requires-python = ">=3.11"
+authors = [{ name = "Donatto Pieve Costa Campos", email = "donattocampos@outlook.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[project.urls]
+"Repositório" = "https://github.com/DonattoPieve/wow-ah-prices"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["backend", "backend.app", "backend.app.rotas"]
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+# `<modulo>.test.py` em vez de `test_<modulo>.py`: é o padrão que o Athena já
+# usa (`scripts/espelho.test.mjs`), e deixa o arquivo de teste ordenar junto do
+# módulo que ele testa. O pytest não descobre esse nome sozinho — daí a linha.
+python_files = ["*.test.py"]
+testpaths = ["tests"]
+# importlib, e não o modo antigo: com o nome `api.test.py` o pytest tentava
+# importar o módulo `tests.api.test` e não achava nada. O modo importlib carrega
+# pelo caminho do arquivo e aceita ponto no nome.
+addopts = "-q --strict-markers --strict-config --import-mode=importlib"
+pythonpath = ["."]
+filterwarnings = ["error"]
+
+# ---------------------------------------------------------------------------
+# ruff (lint + format)
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM",  # simplify
+    "RUF",
+]
+ignore = [
+    # `range` e `id` como nome de parâmetro de rota: é o nome que sai na URL e
+    # na documentação do OpenAPI. Trocar para agradar o lint pioraria a API.
+    "A002",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Teste pode repetir número mágico e ter função longa: é a asserção.
+"tests/*" = ["E501"]
+
+# ---------------------------------------------------------------------------
+# mypy
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+exclude = ["tests/"]
+
+[tool.coverage.run]
+source = ["backend/app"]
+omit = ["*/semente.py"]
+
+[tool.coverage.report]
+# O seed é dado de mentira e o __init__ é vazio; cobrir os dois só infla o número.
+exclude_lines = ["pragma: sem cobertura", "if __name__ == .__main__.:"]

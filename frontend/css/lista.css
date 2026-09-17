@@ -1,0 +1,45 @@
+/* Tela do catálogo: filtros e tabela. */
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.filtros input { flex: 1; min-width: 180px; }
+
+table { width: 100%; border-collapse: collapse; }
+
+th, td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--c-border);
+  text-align: left;
+}
+th {
+  color: var(--c-muted);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+tbody tr[data-id] { cursor: pointer; }
+tbody tr[data-id]:hover { background: var(--c-surface); }
+
+/* Cores de raridade do jogo. São as do cliente do WoW porque o jogador lê a
+   cor antes do nome — trocar por uma paleta "bonita" atrapalharia quem usa. */
+.q-common { color: var(--c-text); }
+.q-uncommon { color: #1a7f37; }
+.q-rare { color: #1d6fd8; }
+.q-epic { color: #8250df; }
+.q-legendary { color: #b35900; }
+
+[data-theme="dark"] .q-uncommon { color: #3fb950; }
+[data-theme="dark"] .q-rare { color: #58a6ff; }
+[data-theme="dark"] .q-epic { color: #bc8cff; }
+[data-theme="dark"] .q-legendary { color: #ff9d2e; }
+
+@media (max-width: 640px) {
+  /* A categoria é a coluna mais dispensável no celular: o nome já sugere. */
+  th:nth-child(2), td:nth-child(2) { display: none; }
+}

@@ -1,0 +1,200 @@
+/*
+ * Tokens e primitivas. As telas ficam em lista.css e item.css.
+ *
+ * A paleta vem do Athena: bronze sobre pedra clara. Mesmos nomes de token
+ * (--c-*, --r-*, --font-*), para um componente migrar de um projeto para o
+ * outro sem tradução de variável.
+ */
+
+@import "lista.css";
+@import "item.css";
+
+:root {
+  --c-bg: #faf8f4;
+  --c-surface: #f2ede4;
+  --c-card: #ffffff;
+  --c-border: #e5ddd0;
+  --c-text: #1c1913;
+  --c-muted: #6f695d;
+  --c-accent: #8a5e17;
+  --c-accent-light: #f6ecd9;
+
+  /* Escala do bronze, do claro ao fundo. O gráfico e o mapa de calor pintam
+     com ela; nenhuma cor de dado é escrita solta no CSS das telas. */
+  --sv-glow: #f0d9a8;
+  --sv-bright: #d0a250;
+  --sv-mid: #a97c2a;
+  --sv-accent: #8a5e17;
+  --sv-deep: #4a3208;
+
+  /* Alta e baixa. Não são o bronze: precisam de significado próprio, e o par
+     precisa sobreviver a quem não distingue verde de vermelho — daí o azul
+     no lugar do verde. */
+  --c-alta: #1f7a4d;
+  --c-baixa: #b3411f;
+
+  --dots: rgba(138, 94, 23, 0.08);
+  --shadow-card: 0 1px 2px rgba(40, 28, 8, 0.05), 0 4px 16px rgba(40, 28, 8, 0.07);
+  --shadow-card-hover: 0 2px 4px rgba(40, 28, 8, 0.08), 0 12px 28px rgba(40, 28, 8, 0.16);
+
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-prose: Arial, Helvetica, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-xl: 12px;
+  --r-2xl: 16px;
+
+  /* Largura da coluna de conteúdo. UM número: mexer aqui move a página toda. */
+  --medida: 1100px;
+}
+
+/*
+ * Tema escuro. Os valores aqui são deste projeto, não copiados do Athena — o
+ * bloco dark de lá ficou inacessível quando escrevi isto. Quem for unificar os
+ * dois confere `[data-theme="dark"]` no index.css do Athena primeiro.
+ */
+[data-theme="dark"] {
+  --c-bg: #131210;
+  --c-surface: #1b1916;
+  --c-card: #211e1a;
+  --c-border: #322d26;
+  --c-text: #ede9e1;
+  --c-muted: #9b9287;
+  --c-accent: #d0a250;
+  --c-accent-light: rgba(208, 162, 80, 0.14);
+
+  --c-alta: #4cc38a;
+  --c-baixa: #ef6461;
+
+  --dots: rgba(208, 162, 80, 0.1);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+/* Sem preferência salva, segue o sistema. Com `data-theme` no html, o atributo
+   manda — é o que o botão de tema escreve. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --c-bg: #131210;
+    --c-surface: #1b1916;
+    --c-card: #211e1a;
+    --c-border: #322d26;
+    --c-text: #ede9e1;
+    --c-muted: #9b9287;
+    --c-accent: #d0a250;
+    --c-accent-light: rgba(208, 162, 80, 0.14);
+    --c-alta: #4cc38a;
+    --c-baixa: #ef6461;
+    --dots: rgba(208, 162, 80, 0.1);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.35);
+    --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Paletas trocáveis, como no Athena: só o acento muda, o resto do tema fica. */
+[data-palette="violet"] { --c-accent: #7c3aed; --c-accent-light: #f0e9ff; --dots: rgba(124, 58, 237, 0.1); }
+[data-palette="cyan"]   { --c-accent: #0e7490; --c-accent-light: #e0f5fa; --dots: rgba(14, 116, 144, 0.1); }
+[data-palette="blue"]   { --c-accent: #1d4ed8; --c-accent-light: #e6ecff; --dots: rgba(29, 78, 216, 0.1); }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  background-image: radial-gradient(var(--dots) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: var(--c-text);
+  font: 14px/1.55 var(--font-ui);
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Todo número de dinheiro ou quantidade sai na mono, com dígito de largura
+   fixa: sem isso a coluna da tabela dança a cada atualização de preço. */
+.num, td.num, .grande {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--c-card);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.marca {
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 0.01em;
+  margin-right: auto;
+}
+
+main, footer {
+  max-width: var(--medida);
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+footer { padding-top: 0; padding-bottom: 40px; }
+.pequeno { font-size: 12px; }
+
+h1 { margin: 4px 0; font-size: 22px; font-family: var(--font-prose); }
+h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+}
+
+.muted { color: var(--c-muted); }
+.alta { color: var(--c-alta); }
+.baixa { color: var(--c-baixa); }
+.erro { color: var(--c-baixa); }
+.r { text-align: right; }
+
+input, select, button {
+  background: var(--c-card);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  font: inherit;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--c-accent); }
+:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+
+.card {
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  margin: 14px 0;
+}
+.cards .card { margin: 0; }
+.duas { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }

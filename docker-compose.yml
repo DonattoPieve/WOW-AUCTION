@@ -1,0 +1,48 @@
+# Dois serviços: a API que serve as telas, e a ingestão que preenche o banco.
+#
+# A ingestão não é um daemon — é um comando que roda, grava a hora e sai. Quem
+# chama de hora em hora é o agendador de fora (Task Scheduler, cron, um node do
+# n8n), e não um loop dentro do contêiner: assim uma falha de rede numa hora não
+# derruba o processo, e o log de cada execução fica separado.
+#
+#   docker compose up api          # sobe as telas em localhost:8000
+#   docker compose run --rm ingestao   # busca a hora atual na Battle.net
+#   docker compose run --rm semente    # popula com dados fictícios
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - dados:/dados
+    environment:
+      WOW_DB_PATH: /dados/wow.db
+    restart: unless-stopped
+
+  ingestao:
+    build: .
+    volumes:
+      - dados:/dados
+    environment:
+      WOW_DB_PATH: /dados/wow.db
+      # Vêm do .env, que não entra no git. Sem eles a ingestão falha com uma
+      # mensagem apontando para o `semente`, em vez de um traceback.
+      BLIZZARD_CLIENT_ID: ${BLIZZARD_CLIENT_ID:-}
+      BLIZZARD_CLIENT_SECRET: ${BLIZZARD_CLIENT_SECRET:-}
+    command: ["python", "-m", "backend.app.ingestao"]
+    # `no` de propósito: é um job, não um serviço. Com `unless-stopped` o Docker
+    # o reiniciaria em loop depois de cada execução bem-sucedida.
+    restart: "no"
+
+  semente:
+    build: .
+    volumes:
+      - dados:/dados
+    environment:
+      WOW_DB_PATH: /dados/wow.db
+    command: ["python", "-m", "backend.app.semente", "--dias", "365"]
+    restart: "no"
+
+volumes:
+  dados:
