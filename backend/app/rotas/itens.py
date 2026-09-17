@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from .. import estatisticas
 from ..banco import conexao
-from ..config import RANGES, REGIONS
+from ..config import RANGES, REALM, REGIAO_PADRAO, REGIONS
 
 router = APIRouter(prefix="/api", tags=["items"])
 
@@ -18,11 +18,19 @@ Region = Annotated[Literal["us", "eu"], Query(description="Região da AH")]
 
 def _item(conn: sqlite3.Connection, item_id: int) -> dict:
     row = conn.execute(
-        "SELECT id, name, category, quality FROM items WHERE id = ?", (item_id,)
+        "SELECT id, name, name_ptbr, icon, category, quality FROM items WHERE id = ?",
+        (item_id,),
     ).fetchone()
     if row is None:
         raise HTTPException(404, f"item {item_id} não encontrado")
     return dict(row)
+
+
+@router.get("/realm")
+def realm() -> dict:
+    """O realm em que o app está fixado. A interface lê isto em vez de fixar
+    o texto no HTML."""
+    return REALM
 
 
 @router.get("/health")
@@ -39,7 +47,7 @@ def categorias(conn: Conn) -> list[str]:
 @router.get("/items")
 def listar_itens(
     conn: Conn,
-    region: Region = "us",
+    region: Region = REGIAO_PADRAO,
     q: str = "",
     category: str = "",
     sort: Literal["name", "value", "quantity", "change"] = "name",
@@ -49,7 +57,7 @@ def listar_itens(
 
 
 @router.get("/items/{item_id}")
-def item_detail(conn: Conn, item_id: int, region: Region = "us") -> dict:
+def item_detail(conn: Conn, item_id: int, region: Region = REGIAO_PADRAO) -> dict:
     item = _item(conn, item_id)
     return {
         "item": item,
@@ -70,7 +78,7 @@ def item_detail(conn: Conn, item_id: int, region: Region = "us") -> dict:
 def item_series(
     conn: Conn,
     item_id: int,
-    region: Region = "us",
+    region: Region = REGIAO_PADRAO,
     range: Literal["daily", "weekly", "monthly", "quarter", "half-year", "year"] = "weekly",
     points: Annotated[int, Query(ge=10, le=2000)] = 300,
 ) -> dict:
@@ -92,7 +100,7 @@ def item_series(
 def item_heatmap(
     conn: Conn,
     item_id: int,
-    region: Region = "us",
+    region: Region = REGIAO_PADRAO,
     field: Literal["value", "quantity"] = "value",
     weeks: Annotated[int, Query(ge=1, le=52)] = 4,
 ) -> dict:

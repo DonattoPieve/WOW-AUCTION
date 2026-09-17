@@ -7,10 +7,32 @@ menos é uma dependência a menos para manter.
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 ROOT = Path(__file__).resolve().parents[2]
 
 REGIONS = ("us", "eu")
+
+# O app é fixado num realm só: Area 52, região US (connected realm 3676).
+#
+# ATENÇÃO, e isto vale estar escrito onde não se perde: o endpoint de
+# commodities da Blizzard é REGIONAL, não por realm. O preço de minério que
+# este app mostra é o mesmo para Area 52, Illidan, Stormrage e qualquer outro
+# realm dos EUA — commodities têm um mercado único por região. O realm só
+# passaria a importar se o projeto ingerisse itens não-commodity (armas,
+# armaduras), que usam o endpoint
+# /data/wow/connected-realm/{id}/auctions e aí sim são por realm.
+#
+# Ou seja: "Area 52" na interface identifica o realm do jogador, e os números
+# são corretos para ele. Não são exclusivos dele.
+REGIAO_PADRAO: Literal["us", "eu"] = "us"
+
+REALM = {
+    "nome": "Area 52",
+    "slug": "area-52",
+    "region": REGIAO_PADRAO,
+    "connected_realm_id": 3676,
+}
 
 # Faixas do gráfico, em horas. A AH da Blizzard atualiza de hora em hora,
 # então uma hora é a menor granularidade que faz sentido guardar.

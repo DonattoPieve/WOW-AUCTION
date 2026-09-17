@@ -6,11 +6,18 @@
   flex-wrap: wrap;
   margin: 16px 0;
 }
-.filtros input { flex: 1; min-width: 180px; }
+.filtros input {
+  flex: 1;
+  min-width: 180px;
+}
 
-table { width: 100%; border-collapse: collapse; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-th, td {
+th,
+td {
   padding: 9px 10px;
   border-bottom: 1px solid var(--c-border);
   text-align: left;
@@ -23,23 +30,120 @@ th {
   letter-spacing: 0.04em;
 }
 
-tbody tr[data-id] { cursor: pointer; }
-tbody tr[data-id]:hover { background: var(--c-surface); }
+tbody tr[data-id] {
+  cursor: pointer;
+}
+tbody tr[data-id]:hover {
+  background: var(--c-surface);
+}
 
 /* Cores de raridade do jogo. São as do cliente do WoW porque o jogador lê a
    cor antes do nome — trocar por uma paleta "bonita" atrapalharia quem usa. */
-.q-common { color: var(--c-text); }
-.q-uncommon { color: #1a7f37; }
-.q-rare { color: #1d6fd8; }
-.q-epic { color: #8250df; }
-.q-legendary { color: #b35900; }
+.q-common {
+  color: var(--c-text);
+}
+.q-uncommon {
+  color: #1a7f37;
+}
+.q-rare {
+  color: #1d6fd8;
+}
+.q-epic {
+  color: #8250df;
+}
+.q-legendary {
+  color: #b35900;
+}
 
-[data-theme="dark"] .q-uncommon { color: #3fb950; }
-[data-theme="dark"] .q-rare { color: #58a6ff; }
-[data-theme="dark"] .q-epic { color: #bc8cff; }
-[data-theme="dark"] .q-legendary { color: #ff9d2e; }
+[data-theme="dark"] .q-uncommon {
+  color: #3fb950;
+}
+[data-theme="dark"] .q-rare {
+  color: #58a6ff;
+}
+[data-theme="dark"] .q-epic {
+  color: #bc8cff;
+}
+[data-theme="dark"] .q-legendary {
+  color: #ff9d2e;
+}
 
 @media (max-width: 640px) {
   /* A categoria é a coluna mais dispensável no celular: o nome já sugere. */
-  th:nth-child(2), td:nth-child(2) { display: none; }
+  th:nth-child(2),
+  td:nth-child(2) {
+    display: none;
+  }
+}
+
+/* Nome em inglês ao lado do português: presente para quem procura pelo nome
+   que aparece no jogo, discreto para não competir com o nome principal. */
+.nome-en {
+  color: var(--muted);
+  font-size: 0.85em;
+  font-weight: 400;
+  margin-left: 0.4em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Ícone do item, favoritos e o filtro de favoritos
+ * ------------------------------------------------------------------------- */
+
+.celula-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* O ícone é servido pelo CDN da Blizzard; guardamos a URL, não a arte. */
+.icone-item {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  object-fit: cover;
+}
+
+/* Quando a API não tem ícone: quadrado com a inicial, no lugar de um vão. */
+.icone-item.vazio {
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-accent);
+}
+
+.col-fav {
+  width: 34px;
+  padding-right: 0;
+}
+
+.favorito {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--c-muted);
+  cursor: pointer;
+}
+
+.favorito:hover {
+  color: var(--c-accent);
+}
+
+.favorito.on {
+  color: var(--sv-bright);
+}
+
+.alternador {
+  white-space: nowrap;
+}
+
+.alternador.on {
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+  background: var(--c-accent-light);
 }

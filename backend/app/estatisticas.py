@@ -15,7 +15,7 @@ def serie(conn: sqlite3.Connection, item_id: int, region: str, hours: int) -> li
     """Os últimos `hours` pontos, do mais antigo para o mais novo."""
     rows = conn.execute(
         """
-        SELECT ts, value, quantity, sales FROM snapshots
+        SELECT ts, value, min_buyout, quantity, sales FROM snapshots
          WHERE item_id = ? AND region = ?
          ORDER BY ts DESC LIMIT ?
         """,
@@ -27,7 +27,7 @@ def serie(conn: sqlite3.Connection, item_id: int, region: str, hours: int) -> li
 def ultimo(conn: sqlite3.Connection, item_id: int, region: str) -> dict[str, Any] | None:
     row = conn.execute(
         """
-        SELECT ts, value, quantity, sales FROM snapshots
+        SELECT ts, value, min_buyout, quantity, sales FROM snapshots
          WHERE item_id = ? AND region = ?
          ORDER BY ts DESC LIMIT 1
         """,
@@ -61,6 +61,7 @@ def diario(conn: sqlite3.Connection, item_id: int, region: str) -> dict[str, Any
     if not pts:
         return {
             "value": 0.0,
+            "min_buyout": None,
             "quantity": 0,
             "change": 0.0,
             "change_pct": 0.0,
@@ -75,6 +76,7 @@ def diario(conn: sqlite3.Connection, item_id: int, region: str) -> dict[str, Any
     change = now["value"] - before
     return {
         "value": round(now["value"], 4),
+        "min_buyout": round(now["min_buyout"], 4) if now["min_buyout"] is not None else None,
         "quantity": now["quantity"],
         "change": round(change, 4),
         "change_pct": round(change / before * 100, 2) if before else 0.0,
@@ -120,7 +122,10 @@ def mapa_calor(
 
 
 ORDENS = {
-    "name": "i.name COLLATE NOCASE ASC",
+    # Ordena pelo nome que a tela mostra (o português, quando existe), não pelo
+    # nome em inglês: ordenar por um campo invisível faz a lista parecer
+    # desordenada para quem lê.
+    "name": "COALESCE(i.name_ptbr, i.name) COLLATE NOCASE ASC",
     "value": "s.value DESC",
     "quantity": "s.quantity DESC",
     "change": "change_pct DESC",
@@ -143,8 +148,8 @@ def listar_itens(
             SELECT item_id, MAX(ts) AS ts FROM snapshots
              WHERE region = ? GROUP BY item_id
         )
-        SELECT i.id, i.name, i.category, i.quality,
-               s.ts, s.value, s.quantity,
+        SELECT i.id, i.name, i.name_ptbr, i.icon, i.category, i.quality,
+               s.ts, s.value, s.min_buyout, s.quantity,
                COALESCE(
                    ROUND((s.value - antes.value) / NULLIF(antes.value, 0) * 100, 2),
                    0
@@ -155,12 +160,15 @@ def listar_itens(
           LEFT JOIN snapshots antes
                  ON antes.item_id = i.id AND antes.region = ?
                 AND antes.ts = u.ts - 24 * {HOUR}
-         WHERE (? = '' OR i.name LIKE '%' || ? || '%')
+         -- A busca casa os dois idiomas: quem digita "cobre" e quem digita
+         -- "copper" acham o mesmo item.
+         WHERE (? = '' OR i.name LIKE '%' || ? || '%'
+                       OR IFNULL(i.name_ptbr, '') LIKE '%' || ? || '%')
            AND (? = '' OR i.category = ?)
          ORDER BY {order}
          LIMIT ?
         """,
-        (region, region, region, q, q, category, category, limit),
+        (region, region, region, q, q, q, category, category, limit),
     ).fetchall()
     return [dict(r) for r in rows]
 

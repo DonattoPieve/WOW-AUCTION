@@ -125,8 +125,8 @@ def test_agregar_agrupa_por_item():
     resultado = agregar(payload)
 
     assert set(resultado) == {1, 2}
-    assert resultado[1] == (1.0, 10)
-    assert resultado[2] == (3.0, 2)
+    assert resultado[1] == (1.0, 1.0, 10)
+    assert resultado[2] == (3.0, 3.0, 2)
 
 
 def test_agregar_descarta_leilao_sem_campo_obrigatorio():

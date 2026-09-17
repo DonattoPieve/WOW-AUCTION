@@ -62,6 +62,30 @@ Cada uma tem um ADR em [`adr/`](adr/), com o contexto e o que foi descartado:
 - [0002](adr/0002-frontend-sem-build.md) — frontend sem bundler e gráfico em SVG
 - [0003](adr/0003-valor-de-mercado.md) — como o valor de mercado é calculado
 - [0004](adr/0004-ingestao-como-job.md) — ingestão como job externo, sem worker
+- [0005](adr/0005-eixo-duplo-e-series-alternaveis.md) — eixo duplo no gráfico, com a ressalva
+
+## O realm fixado
+
+O app está fixado em **Area 52 (US)**, connected realm 3676.
+
+Vale repetir aqui o que está no `config.py`, porque é a confusão mais fácil de
+cometer neste domínio: **o endpoint de commodities é regional, não por realm.**
+O preço de minério mostrado aqui é o mesmo para Area 52, Illidan, Stormrage e
+qualquer outro realm dos Estados Unidos — commodities têm mercado único por
+região. "Area 52" identifica o realm de quem usa o app; os números são corretos
+para ele, e não são exclusivos dele.
+
+O realm só passaria a importar de fato com itens não-commodity (armas,
+armaduras, transmog), que usam `/data/wow/connected-realm/{id}/auctions` e aí
+sim têm preço por realm. É por isso que o `connected_realm_id` já está na
+configuração, embora hoje nada o consuma.
+
+## Favoritos
+
+Ficam no `localStorage` do navegador, não no banco. O projeto não tem login, e
+favorito por usuário exige conta — que é bem mais que uma tabela (cadastro,
+sessão, recuperação de senha, LGPD). A consequência aceita é que os favoritos
+são por navegador: não seguem a pessoa para outro dispositivo.
 
 ## O que ainda não existe
 
@@ -70,7 +94,8 @@ Honestamente listado, porque projeto sem limite declarado engana quem lê:
 - **Itens não-commodity** (armas, armaduras, transmog). Esses são por realm, o
   endpoint é outro e o volume é muito maior.
 - **Autenticação.** A API é aberta e só faz leitura. Alertas por usuário
-  precisariam de conta, e conta precisa de bem mais que uma tabela.
+  precisariam de conta, e conta precisa de bem mais que uma tabela — é o mesmo
+  motivo pelo qual os favoritos ficam no navegador.
 - **Previsão de preço.** Um ano de dados horários é material suficiente, mas
   previsão mal-feita é pior que nenhuma.
 - **Postgres.** Um item com um ano de histórico são ~9 mil linhas; o catálogo

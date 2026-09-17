@@ -5,15 +5,16 @@
 // `hsl()` calculado no JS: assim a paleta continua morando no CSS, e trocar o
 // acento do tema troca o mapa junto.
 
-const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const DIAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-const fmt = (v) => v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+const fmt = (v) => v.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
-export function desenharMapaCalor(el, grid, { rotulo = '' } = {}) {
+export function desenharMapaCalor(el, grid, { rotulo = "" } = {}) {
   const preenchidas = grid.flat().filter((v) => v > 0);
 
   if (!preenchidas.length) {
-    el.innerHTML = '<p class="muted">Sem dados suficientes para o padrão semanal.</p>';
+    el.innerHTML =
+      '<p class="muted">Sem dados suficientes para o padrão semanal.</p>';
     return;
   }
 
@@ -28,12 +29,15 @@ export function desenharMapaCalor(el, grid, { rotulo = '' } = {}) {
   };
 
   const horas = [...Array(24)]
-    .map((_, h) => `<div class="rotulo">${h % 3 ? '' : h}</div>`)
-    .join('');
+    .map((_, h) => `<div class="rotulo">${h % 3 ? "" : h}</div>`)
+    .join("");
 
   const linhas = grid
-    .map((linha, d) => `<div class="rotulo">${DIAS[d]}</div>${linha.map(celula).join('')}`)
-    .join('');
+    .map(
+      (linha, d) =>
+        `<div class="rotulo">${DIAS[d]}</div>${linha.map(celula).join("")}`,
+    )
+    .join("");
 
   el.innerHTML = `
     <div class="mapa">
@@ -44,6 +48,6 @@ export function desenharMapaCalor(el, grid, { rotulo = '' } = {}) {
       <span>${fmt(min)}</span>
       <span class="escala" role="presentation"></span>
       <span>${fmt(max)}</span>
-      ${rotulo ? `<span class="muted">${rotulo}</span>` : ''}
+      ${rotulo ? `<span class="muted">${rotulo}</span>` : ""}
     </div>`;
 }

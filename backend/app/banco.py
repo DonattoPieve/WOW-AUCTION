@@ -30,7 +30,26 @@ def conectar(db_path: Path | None = None) -> sqlite3.Connection:
 
 def criar_esquema(conn: sqlite3.Connection) -> None:
     conn.executescript(ESQUEMA.read_text(encoding="utf-8"))
+    _migrar_colunas(conn)
     conn.commit()
+
+
+# Colunas acrescentadas depois da primeira versão. O `CREATE TABLE IF NOT
+# EXISTS` não altera tabela que já existe, então um banco antigo precisa do
+# ALTER. Quatro linhas resolvem o que o Alembic resolveria com uma dependência
+# e um diretório de migrações (ver ADR 0001).
+COLUNAS_NOVAS = {
+    "items": {"name_ptbr": "TEXT", "icon": "TEXT"},
+    "snapshots": {"min_buyout": "REAL"},
+}
+
+
+def _migrar_colunas(conn: sqlite3.Connection) -> None:
+    for tabela, colunas in COLUNAS_NOVAS.items():
+        existentes = {r["name"] for r in conn.execute(f"PRAGMA table_info({tabela})")}
+        for coluna, tipo in colunas.items():
+            if coluna not in existentes:
+                conn.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {tipo}")
 
 
 @contextmanager

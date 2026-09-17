@@ -28,13 +28,33 @@ def test_items_devolve_o_catalogo(client):
 
 
 def test_items_aceita_busca_e_categoria(client):
-    # A busca é por substring em qualquer posição: "ore" casa "Copper Ore",
-    # "Tin Ore" e também "Ren'dorei". É o comportamento esperado de um LIKE %x%.
-    nomes = [i["name"] for i in client.get("/api/items", params={"q": "ore"}).json()]
+    achados = client.get("/api/items", params={"q": "copper"}).json()
 
-    assert len(nomes) == 3
-    assert all("ore" in n.lower() for n in nomes)
+    assert [i["name"] for i in achados] == ["Refulgent Copper Ore"]
     assert len(client.get("/api/items", params={"category": "Leather"}).json()) == 2
+
+
+def test_busca_casa_o_nome_em_portugues(client):
+    # O mesmo item, procurado nos dois idiomas: quem digita "cobre" e quem
+    # digita "copper" tem de chegar no mesmo lugar.
+    por_en = client.get("/api/items", params={"q": "copper"}).json()
+    por_pt = client.get("/api/items", params={"q": "cobre"}).json()
+
+    assert [i["id"] for i in por_en] == [i["id"] for i in por_pt]
+
+
+def test_items_devolve_os_dois_nomes(client):
+    item = client.get("/api/items", params={"q": "copper"}).json()[0]
+
+    assert item["name"] == "Refulgent Copper Ore"
+    assert item["name_ptbr"] == "Minério de Cobre Refulgente"
+
+
+def test_detalhe_devolve_os_dois_nomes(client):
+    item = client.get(f"/api/items/{ITEM}").json()["item"]
+
+    assert item["name"] == "Refulgent Copper Ore"
+    assert item["name_ptbr"] == "Minério de Cobre Refulgente"
 
 
 def test_items_recusa_ordem_desconhecida(client):

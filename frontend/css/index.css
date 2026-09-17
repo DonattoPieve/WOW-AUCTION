@@ -33,11 +33,23 @@
   --c-alta: #1f7a4d;
   --c-baixa: #b3411f;
 
-  --dots: rgba(138, 94, 23, 0.08);
-  --shadow-card: 0 1px 2px rgba(40, 28, 8, 0.05), 0 4px 16px rgba(40, 28, 8, 0.07);
-  --shadow-card-hover: 0 2px 4px rgba(40, 28, 8, 0.08), 0 12px 28px rgba(40, 28, 8, 0.16);
+  /* Cores das séries do gráfico. Deliberadamente fora da escala de bronze: o
+     bronze é identidade da marca, e dado categórico precisa de matizes que se
+     distingam entre si, não que combinem com o cabeçalho.
+     Validadas para daltonismo e contraste nos dois temas com o validador do
+     guia de visualização (ΔE deuteranopia 9.2 no par mais próximo). */
+  --serie-1: #2a78d6; /* market value */
+  --serie-2: #eb6834; /* min buyout */
+  --serie-3: #1baf7a; /* quantity */
 
-  --font-ui: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --dots: rgba(138, 94, 23, 0.08);
+  --shadow-card:
+    0 1px 2px rgba(40, 28, 8, 0.05), 0 4px 16px rgba(40, 28, 8, 0.07);
+  --shadow-card-hover:
+    0 2px 4px rgba(40, 28, 8, 0.08), 0 12px 28px rgba(40, 28, 8, 0.16);
+
+  --font-ui:
+    "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-prose: Arial, Helvetica, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
@@ -69,9 +81,16 @@
   --c-alta: #4cc38a;
   --c-baixa: #ef6461;
 
+  /* Passos próprios para o fundo escuro, não um clareamento automático dos
+     de cima: cada um foi validado contra a superfície escura. */
+  --serie-1: #3987e5;
+  --serie-2: #d95926;
+  --serie-3: #199e70;
+
   --dots: rgba(208, 162, 80, 0.1);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.35);
-  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover:
+    0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.5);
 }
 
 /* Sem preferência salva, segue o sistema. Com `data-theme` no html, o atributo
@@ -90,16 +109,31 @@
     --c-baixa: #ef6461;
     --dots: rgba(208, 162, 80, 0.1);
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.35);
-    --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.5);
+    --shadow-card-hover:
+      0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.5);
   }
 }
 
 /* Paletas trocáveis, como no Athena: só o acento muda, o resto do tema fica. */
-[data-palette="violet"] { --c-accent: #7c3aed; --c-accent-light: #f0e9ff; --dots: rgba(124, 58, 237, 0.1); }
-[data-palette="cyan"]   { --c-accent: #0e7490; --c-accent-light: #e0f5fa; --dots: rgba(14, 116, 144, 0.1); }
-[data-palette="blue"]   { --c-accent: #1d4ed8; --c-accent-light: #e6ecff; --dots: rgba(29, 78, 216, 0.1); }
+[data-palette="violet"] {
+  --c-accent: #7c3aed;
+  --c-accent-light: #f0e9ff;
+  --dots: rgba(124, 58, 237, 0.1);
+}
+[data-palette="cyan"] {
+  --c-accent: #0e7490;
+  --c-accent-light: #e0f5fa;
+  --dots: rgba(14, 116, 144, 0.1);
+}
+[data-palette="blue"] {
+  --c-accent: #1d4ed8;
+  --c-accent-light: #e6ecff;
+  --dots: rgba(29, 78, 216, 0.1);
+}
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -110,12 +144,19 @@ body {
   font: 14px/1.55 var(--font-ui);
 }
 
-a { color: inherit; text-decoration: none; }
-a:hover { text-decoration: underline; }
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
 
 /* Todo número de dinheiro ou quantidade sai na mono, com dígito de largura
    fixa: sem isso a coluna da tabela dança a cada atualização de preço. */
-.num, td.num, .grande {
+.num,
+td.num,
+.grande {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
@@ -145,15 +186,25 @@ nav {
   margin-right: auto;
 }
 
-main, footer {
+main,
+footer {
   max-width: var(--medida);
   margin: 0 auto;
   padding: 20px 16px;
 }
-footer { padding-top: 0; padding-bottom: 40px; }
-.pequeno { font-size: 12px; }
+footer {
+  padding-top: 0;
+  padding-bottom: 40px;
+}
+.pequeno {
+  font-size: 12px;
+}
 
-h1 { margin: 4px 0; font-size: 22px; font-family: var(--font-prose); }
+h1 {
+  margin: 4px 0;
+  font-size: 22px;
+  font-family: var(--font-prose);
+}
 h2 {
   margin: 0 0 10px;
   font-size: 12px;
@@ -163,13 +214,25 @@ h2 {
   color: var(--c-muted);
 }
 
-.muted { color: var(--c-muted); }
-.alta { color: var(--c-alta); }
-.baixa { color: var(--c-baixa); }
-.erro { color: var(--c-baixa); }
-.r { text-align: right; }
+.muted {
+  color: var(--c-muted);
+}
+.alta {
+  color: var(--c-alta);
+}
+.baixa {
+  color: var(--c-baixa);
+}
+.erro {
+  color: var(--c-baixa);
+}
+.r {
+  text-align: right;
+}
 
-input, select, button {
+input,
+select,
+button {
   background: var(--c-card);
   color: var(--c-text);
   border: 1px solid var(--c-border);
@@ -177,9 +240,16 @@ input, select, button {
   padding: 7px 10px;
   font: inherit;
 }
-button { cursor: pointer; }
-button:hover { border-color: var(--c-accent); }
-:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+button {
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--c-accent);
+}
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
 
 .card {
   background: var(--c-card);
@@ -196,5 +266,99 @@ button:hover { border-color: var(--c-accent); }
   gap: 14px;
   margin: 14px 0;
 }
-.cards .card { margin: 0; }
-.duas { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.cards .card {
+  margin: 0;
+}
+.duas {
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+}
+
+/* ---------------------------------------------------------------------------
+ * Busca global e realm, no cabeçalho
+ * ------------------------------------------------------------------------- */
+
+.busca-caixa {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+  margin: 0 12px;
+}
+
+.busca-caixa input {
+  width: 100%;
+}
+
+.realm {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-accent);
+  white-space: nowrap;
+  padding: 4px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-accent-light);
+}
+
+/* O dropdown de resultados. Fica sobre o conteúdo, por isso a sombra e o
+   z-index: sem elevação ele se mistura com a tabela embaixo. */
+.resultados {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card-hover);
+  padding: 6px;
+}
+
+.titulo-lista {
+  margin: 4px 8px 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+}
+
+.resultado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.resultado:hover,
+.resultado:focus-visible {
+  background: var(--c-surface);
+}
+
+.valor-resultado {
+  margin-left: auto;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .busca-caixa {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+    margin: 8px 0 0;
+  }
+  nav {
+    flex-wrap: wrap;
+  }
+}

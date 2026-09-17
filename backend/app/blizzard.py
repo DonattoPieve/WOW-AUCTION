@@ -5,7 +5,7 @@ atual da Auction House. O histórico é o que a ingestão acumula.
 """
 
 import time
-from typing import Any
+from typing import Any, NamedTuple
 
 import httpx
 
@@ -17,6 +17,26 @@ TOKEN_URL = "https://oauth.battle.net/token"
 
 class ErroBlizzard(RuntimeError):
     pass
+
+
+class Agregado(NamedTuple):
+    """O que uma hora de leilões de um item vira depois de agregada."""
+
+    valor: float
+    min_buyout: float
+    quantidade: int
+
+
+def menor_preco(auctions: list[tuple[int, int]]) -> float:
+    """Menor preço unitário listado, em ouro. É o "min buyout" da interface.
+
+    Difere do valor de mercado de propósito: este é o preço da próxima unidade
+    que alguém compraria, e por isso oscila muito mais. Ver os dois juntos é o
+    que mostra se o mercado está espalhado ou concentrado.
+    """
+    if not auctions:
+        return 0.0
+    return round(min(preco for preco, _ in auctions) / COPPER_PER_GOLD, 4)
 
 
 def valor_de_mercado(auctions: list[tuple[int, int]], cut: float = 0.15) -> tuple[float, int]:
@@ -42,8 +62,8 @@ def valor_de_mercado(auctions: list[tuple[int, int]], cut: float = 0.15) -> tupl
     return round(gasto / usado / COPPER_PER_GOLD, 4), total
 
 
-def agregar(payload: dict[str, Any], cut: float = 0.15) -> dict[int, tuple[float, int]]:
-    """Agrupa a resposta bruta por item e calcula valor e quantidade de cada um."""
+def agregar(payload: dict[str, Any], cut: float = 0.15) -> dict[int, Agregado]:
+    """Agrupa a resposta bruta por item e reduz cada um a três números."""
     por_item: dict[int, list[tuple[int, int]]] = {}
     for a in payload.get("auctions", []):
         item_id = a.get("item", {}).get("id")
@@ -51,7 +71,11 @@ def agregar(payload: dict[str, Any], cut: float = 0.15) -> dict[int, tuple[float
         if item_id and preco and qtd:
             por_item.setdefault(item_id, []).append((preco, qtd))
 
-    return {i: valor_de_mercado(lotes, cut) for i, lotes in por_item.items()}
+    agregados = {}
+    for item_id, lotes in por_item.items():
+        valor, quantidade = valor_de_mercado(lotes, cut)
+        agregados[item_id] = Agregado(valor, menor_preco(lotes), quantidade)
+    return agregados
 
 
 class ClienteBlizzard:
@@ -97,15 +121,54 @@ class ClienteBlizzard:
             raise ErroBlizzard(f"commodities {region}: HTTP {r.status_code}")
         return r.json()
 
-    def item(self, region: str, item_id: int) -> dict[str, Any]:
+    def item(self, region: str, item_id: int, locale: str = "en_US") -> dict[str, Any]:
         r = self.http.get(
             f"https://{region}.api.blizzard.com/data/wow/item/{item_id}",
-            params={"namespace": f"static-{region}", "locale": "en_US"},
+            params={"namespace": f"static-{region}", "locale": locale},
             headers={"Authorization": f"Bearer {self.token()}"},
         )
         if r.status_code != 200:
             raise ErroBlizzard(f"item {item_id}: HTTP {r.status_code}")
         return r.json()
+
+    def icone(self, region: str, item_id: int) -> str | None:
+        """URL do ícone do item, ou None se a API não tiver uma.
+
+        Guardamos a URL, não a imagem: a arte é da Blizzard e fica servida pelo
+        CDN dela.
+        """
+        try:
+            r = self.http.get(
+                f"https://{region}.api.blizzard.com/data/wow/media/item/{item_id}",
+                params={"namespace": f"static-{region}"},
+                headers={"Authorization": f"Bearer {self.token()}"},
+            )
+            if r.status_code != 200:
+                return None
+            for asset in r.json().get("assets", []):
+                if asset.get("key") == "icon":
+                    return str(asset["value"])
+        except (httpx.HTTPError, KeyError, ValueError):
+            return None
+        return None
+
+    def nomes(self, region: str, item_id: int) -> tuple[str, str | None]:
+        """Nome em inglês e em português do mesmo item.
+
+        São duas requisições porque o endpoint devolve um idioma por chamada.
+        O inglês é obrigatório (é a chave de busca); o português é o que falha
+        de forma tolerável, então um erro nele devolve None em vez de explodir.
+        """
+        try:
+            en = str(self.item(region, item_id, "en_US")["name"])
+        except KeyError as e:
+            raise ErroBlizzard(f"item {item_id}: resposta sem 'name'") from e
+
+        try:
+            pt: str | None = str(self.item(region, item_id, "pt_BR")["name"])
+        except (ErroBlizzard, KeyError):
+            pt = None
+        return en, pt
 
     def fechar(self) -> None:
         self.http.close()

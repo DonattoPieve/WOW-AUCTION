@@ -119,10 +119,19 @@ def test_list_items_ordena_por_valor_decrescente(conn):
     assert valores == sorted(valores, reverse=True)
 
 
-def test_list_items_ordem_invalida_cai_no_padrao_em_vez_de_quebrar(conn):
-    nomes = [i["name"] for i in estatisticas.listar_itens(conn, "us", sort="'; DROP TABLE items--")]
+def test_list_items_ordena_pelo_nome_exibido(conn):
+    # O padrão ordena pelo nome em português, que é o que a tela mostra na
+    # frente. Ordenar por um campo invisível faria a lista parecer desordenada.
+    exibidos = [i["name_ptbr"] or i["name"] for i in estatisticas.listar_itens(conn, "us")]
 
-    assert nomes == sorted(nomes, key=str.lower)
+    assert exibidos == sorted(exibidos, key=str.lower)
+
+
+def test_list_items_ordem_invalida_cai_no_padrao_em_vez_de_quebrar(conn):
+    itens = estatisticas.listar_itens(conn, "us", sort="'; DROP TABLE items--")
+    exibidos = [i["name_ptbr"] or i["name"] for i in itens]
+
+    assert exibidos == sorted(exibidos, key=str.lower)
 
 
 def test_list_items_respeita_o_limite(conn):
@@ -140,3 +149,21 @@ def test_categories_vem_ordenado_e_sem_repeticao(conn):
     cats = estatisticas.categorias(conn)
 
     assert cats == sorted(set(cats))
+
+
+def test_diario_traz_o_min_buyout(conn):
+    d = estatisticas.diario(conn, ITEM, "us")
+
+    # O seed sempre gera min_buyout abaixo do valor de mercado.
+    assert d["min_buyout"] is not None
+    assert d["min_buyout"] < d["value"] * 1.01
+
+
+def test_diario_sem_dado_devolve_min_buyout_nulo(vazio):
+    assert estatisticas.diario(vazio, ITEM, "us")["min_buyout"] is None
+
+
+def test_serie_inclui_as_tres_series_do_grafico(conn):
+    p = estatisticas.serie(conn, ITEM, "us", 5)[0]
+
+    assert {"ts", "value", "min_buyout", "quantity"} <= set(p)

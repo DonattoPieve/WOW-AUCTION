@@ -12,15 +12,29 @@ A API da Blizzard devolve **só a foto atual** da Auction House — não existe
 endpoint de histórico. Quem quiser saber se um minério está caro hoje precisa ter
 guardado o preço de ontem. Este projeto guarda.
 
+## O realm
+
+O app está fixado em **Area 52 (US)**. Uma ressalva que vale antes de olhar os
+números: o endpoint de commodities da Blizzard é **regional**, não por realm —
+o preço aqui é o mesmo para qualquer realm dos Estados Unidos. "Area 52" é o
+realm de quem usa; os números valem para ele, sem serem exclusivos dele. O
+detalhe está em [`docs/arquitetura.md`](docs/arquitetura.md#o-realm-fixado).
+
 ## O que faz
 
-- **Catálogo** com busca, filtro por categoria e ordenação por valor, alta ou
+- **Busca com ícone** do item, em português ou em inglês: o dropdown mostra a
+  arte antes do nome, que é como se reconhece um item do jogo.
+- **Catálogo** com filtro por categoria e ordenação por valor, alta ou
   quantidade.
+- **Favoritos** marcados na estrela, com filtro para ver só eles.
 - **Página do item** com valor atual, variação de 24h, vendas e volume, além das
   médias diária, semanal e mensal comparando US e EU.
-- **Gráfico** em seis faixas, de um dia a um ano, com tooltip por ponto.
+- **Gráfico** com três séries — market value, min buyout e quantity — que se
+  ligam e desligam na legenda, em seis faixas de um dia a um ano.
 - **Heatmap semanal** de valor e de quantidade (7x24): mostra o padrão de reset,
   de noite de raide e de fim de semana.
+- **Nomes em português** vindos do `locale=pt_BR` da API, com o nome em inglês
+  ao lado — que é o que aparece na Auction House e o que se digita para buscar.
 - **API REST** documentada em `/docs` (OpenAPI gerado pelo FastAPI).
 
 ![Catálogo](docs/telas/catalogo.png)
@@ -89,6 +103,7 @@ ADRs, cada uma com o que foi descartado e por quê:
 | [0002](docs/adr/0002-frontend-sem-build.md) | Frontend sem bundler, gráfico em SVG |
 | [0003](docs/adr/0003-valor-de-mercado.md) | Valor de mercado pela fatia mais barata |
 | [0004](docs/adr/0004-ingestao-como-job.md) | Ingestão como job externo, sem worker |
+| [0005](docs/adr/0005-eixo-duplo-e-series-alternaveis.md) | Eixo duplo no gráfico, com a ressalva registrada |
 
 ## Stack
 
@@ -114,13 +129,15 @@ make help        # lista os alvos
 
 ### Testes
 
-54 testes em quatro frentes:
+86 testes em quatro frentes:
 
 - `tests/estatisticas.test.py` — as agregações, incluindo os casos de banco
   vazio e a recusa de campo arbitrário no heatmap.
 - `tests/api.test.py` — contrato HTTP, validação de parâmetro e códigos de erro.
 - `tests/blizzard.test.py` — o cliente da Blizzard com `httpx.MockTransport`:
   roda offline e sem credencial.
+- `tests/ingestao.test.py` — alinhamento de hora, idempotência, cálculo de
+  vendas e o preenchimento de nomes e ícones.
 - `scripts/ponta-a-ponta.mjs` — sobe o servidor, abre as duas telas num Chromium
   e confere que o que a API devolveu virou pixel.
 

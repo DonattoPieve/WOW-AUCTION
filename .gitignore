@@ -23,8 +23,8 @@ htmlcov/
 # Segredos: só o .env.example entra no repositório.
 .env
 
-# Saída do teste de ponta a ponta (só a da raiz: docs/telas/ é versionada)
-/telas/
+# Saída do teste de ponta a ponta
+telas/
 node_modules/
 
 # Editor e sistema

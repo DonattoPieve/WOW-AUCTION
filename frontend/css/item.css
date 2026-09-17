@@ -1,6 +1,9 @@
 /* Tela do item: cabeçalho, painéis, gráfico e mapa de calor. */
 
-.voltar { display: inline-block; margin-bottom: 8px; }
+.voltar {
+  display: inline-block;
+  margin-bottom: 8px;
+}
 
 .item {
   display: flex;
@@ -22,17 +25,47 @@
   color: var(--c-accent);
 }
 
-.grande { font-size: 30px; font-weight: 700; line-height: 1.2; }
+.grande {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+}
 
-dl { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin: 0; }
-dt { color: var(--c-muted); }
-dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  margin: 0;
+}
+dt {
+  color: var(--c-muted);
+}
+dd {
+  margin: 0;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
 
-.mini { font-size: 13px; }
-.mini td, .mini th { padding: 5px 0; border: 0; }
-.mini th { text-transform: none; letter-spacing: 0; }
+.mini {
+  font-size: 13px;
+}
+.mini td,
+.mini th {
+  padding: 5px 0;
+  border: 0;
+}
+.mini th {
+  text-transform: none;
+  letter-spacing: 0;
+}
 
-.abas { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.abas {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
 .abas .on {
   border-color: var(--c-accent);
   color: var(--c-accent);
@@ -41,14 +74,36 @@ dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-n
 
 /* ---- gráfico ---- */
 
-.grafico { position: relative; }
-svg { width: 100%; height: auto; display: block; }
-svg text { fill: var(--c-muted); font: 11px var(--font-mono); }
+.grafico {
+  position: relative;
+}
+svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+svg text {
+  fill: var(--c-muted);
+  font: 11px var(--font-mono);
+}
 
-.grade { stroke: var(--c-border); }
-.linha { fill: none; stroke: var(--c-accent); stroke-width: 2; }
-.cursor { stroke: var(--c-muted); stroke-dasharray: 3; }
-.ponto { fill: var(--c-accent); stroke: var(--c-card); stroke-width: 2; }
+.grade {
+  stroke: var(--c-border);
+}
+.linha {
+  fill: none;
+  stroke: var(--c-accent);
+  stroke-width: 2;
+}
+.cursor {
+  stroke: var(--c-muted);
+  stroke-dasharray: 3;
+}
+.ponto {
+  fill: var(--c-accent);
+  stroke: var(--c-card);
+  stroke-width: 2;
+}
 
 .dica {
   display: none;
@@ -72,8 +127,14 @@ svg text { fill: var(--c-muted); font: 11px var(--font-mono); }
   grid-template-columns: 34px repeat(24, 1fr);
   gap: 2px;
 }
-.mapa > div { aspect-ratio: 1; border-radius: var(--r-sm); }
-.mapa .vazio { background: var(--c-border); opacity: 0.4; }
+.mapa > div {
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+}
+.mapa .vazio {
+  background: var(--c-border);
+  opacity: 0.4;
+}
 .mapa .rotulo {
   aspect-ratio: auto;
   font: 10px var(--font-mono);
@@ -105,6 +166,114 @@ svg text { fill: var(--c-muted); font: 11px var(--font-mono); }
 }
 
 @media (max-width: 640px) {
-  .grande { font-size: 24px; }
-  .mapa { grid-template-columns: 26px repeat(24, 1fr); gap: 1px; }
+  .grande {
+    font-size: 24px;
+  }
+  .mapa {
+    grid-template-columns: 26px repeat(24, 1fr);
+    gap: 1px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Gráfico de três séries
+ * ------------------------------------------------------------------------- */
+
+.cabecalho-grafico {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.cabecalho-grafico h2 {
+  margin: 0;
+}
+
+.grafico-area {
+  position: relative;
+}
+
+/* Cada série é duas linhas: esta, grossa e na cor do cartão, vai por baixo e
+   abre um respiro onde duas séries se cruzam. Sem ela o cruzamento vira um
+   borrão e não se sabe qual linha passou na frente. */
+.contorno {
+  fill: none;
+  stroke: var(--c-card);
+  stroke-width: 5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.serie {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Rótulos do eixo da direita saem na cor da série de quantidade: é o que liga
+   a escala à linha e reduz a ambiguidade do eixo duplo. */
+.rotulo-qtd {
+  fill: var(--serie-3);
+  font-weight: 600;
+}
+
+.legenda {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* A legenda é o controle: cada chip liga e desliga a série. Desligada fica
+   apagada mas legível — some a cor, não o texto. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  font-size: 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.chip.off {
+  opacity: 0.45;
+}
+
+.chip.off .ponto {
+  background: var(--c-muted) !important;
+}
+
+.chip .ponto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dica .ponto {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.dica .quando {
+  color: var(--c-muted);
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.titulo-item {
+  flex: 1;
+}
+
+.titulo-item h1 {
+  margin: 0;
 }
